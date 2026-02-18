@@ -35,7 +35,7 @@ const Navbar = () => {
           to="/"
           className="text-2xl font-black italic tracking-tighter text-white uppercase"
         >
-          OBANIEL.
+          OBANIEL.STORE
         </Link>
       </div>
 

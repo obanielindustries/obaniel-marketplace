@@ -32,7 +32,7 @@ const Login = () => {
       <div className="w-full max-w-md z-10">
         {/* STYLISH RETURN BUTTON */}
         <Link
-          to="/"
+          to="/products"
           className="group inline-flex items-center gap-2 mb-12 text-zinc-500 hover:text-white transition-colors duration-300"
         >
           <div className="w-8 h-8 rounded-full border border-zinc-800 flex items-center justify-center group-hover:border-orange-600 group-hover:bg-orange-600/10 transition-all">
