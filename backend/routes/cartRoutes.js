@@ -14,4 +14,5 @@ cartRoutes.get("/", protect, getCart);
 cartRoutes.post("/add", protect, addToCart);
 cartRoutes.delete("/:productId", protect, removeFromCart);
 
+// mainroutes for all these things
 export default cartRoutes;
