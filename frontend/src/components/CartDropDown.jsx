@@ -64,7 +64,7 @@ const CartDropdown = ({ isOpen, setIsOpen }) => {
                       QTY: {item.quantity || 1}
                     </p>
                     <p className="text-orange-600 font-bold text-xs">
-                      $
+                      ₦
                       {(
                         (item.product?.price || 0) * (item.quantity || 1)
                       ).toFixed(2)}
@@ -83,7 +83,7 @@ const CartDropdown = ({ isOpen, setIsOpen }) => {
                 Total_Payload
               </span>
               <span className="text-xl font-black text-white font-mono">
-                ${subtotal.toFixed(2)}
+                ₦{subtotal.toFixed(2)}
               </span>
             </div>
 

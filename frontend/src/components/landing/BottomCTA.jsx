@@ -5,9 +5,9 @@ const BottomCTA = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative py-32 border-t border-zinc-900 bg-[#0a0a0a] overflow-hidden">
-      {/* Background Decorative Element: Subtle Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-96 bg-orange-600/5 blur-[120px] pointer-events-none" />
+    <section className="relative py-32 border-t border-zinc-200 dark:border-zinc-900 bg-[var(--bg-primary)] overflow-hidden transition-colors duration-500">
+      {/* Background Decorative Element: Subtle Glow - Made even subtler for light mode */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-96 bg-orange-600/5 dark:bg-orange-600/10 blur-[120px] pointer-events-none" />
 
       <div className="section-container relative z-10 text-center space-y-12">
         <div className="flex justify-center">
@@ -16,13 +16,13 @@ const BottomCTA = () => {
             <ShoppingBag
               size={64}
               strokeWidth={0.5}
-              className="text-zinc-700 relative z-10 group-hover:text-orange-600 transition-colors"
+              className="text-zinc-400 dark:text-zinc-700 relative z-10 group-hover:text-orange-600 transition-colors"
             />
           </div>
         </div>
 
         <div className="space-y-6">
-          <h2 className="text-4xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9]">
+          <h2 className="text-4xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] text-[var(--text-primary)]">
             Evolution is <br />
             <span className="text-orange-600">Non-Negotiable.</span>
           </h2>
@@ -35,14 +35,14 @@ const BottomCTA = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
           <button
             onClick={() => navigate("/signup")}
-            className="w-full sm:w-auto px-12 py-6 bg-white text-black text-[11px] font-black uppercase tracking-[0.4em] rounded-full hover:bg-orange-600 hover:text-white transition-all active:scale-95 cursor-pointer shadow-2xl shadow-orange-900/20"
+            className="w-full sm:w-auto px-12 py-6 bg-[var(--text-primary)] text-[var(--bg-primary)] text-[11px] font-black uppercase tracking-[0.4em] rounded-full hover:bg-orange-600 hover:text-white transition-all active:scale-95 cursor-pointer shadow-2xl shadow-orange-900/20"
           >
             Initialize Membership
           </button>
 
           <button
             onClick={() => navigate("/products")}
-            className="group flex items-center gap-3 px-8 py-6 text-[11px] font-black uppercase tracking-[0.4em] text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            className="group flex items-center gap-3 px-8 py-6 text-[11px] font-black uppercase tracking-[0.4em] text-zinc-500 hover:text-orange-600 dark:hover:text-white transition-colors cursor-pointer"
           >
             Browse The Index{" "}
             <ChevronRight
@@ -54,11 +54,11 @@ const BottomCTA = () => {
       </div>
 
       {/* Aesthetic Metadata Ticker */}
-      <div className="absolute bottom-8 left-0 w-full px-6 flex justify-between items-center opacity-20">
+      <div className="absolute bottom-8 left-0 w-full px-6 flex justify-between items-center opacity-40 dark:opacity-20">
         <span className="text-[8px] font-mono uppercase tracking-widest text-zinc-500">
           Auth_Protocol // OB-2026
         </span>
-        <div className="h-px flex-1 mx-8 bg-zinc-800" />
+        <div className="h-px flex-1 mx-8 bg-zinc-200 dark:bg-zinc-800" />
         <span className="text-[8px] font-mono uppercase tracking-widest text-zinc-500">
           Status: Terminal_Active
         </span>

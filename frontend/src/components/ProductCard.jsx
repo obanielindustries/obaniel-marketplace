@@ -1,55 +1,67 @@
-import { Eye, Plus, Star } from "lucide-react";
+import { ShoppingCart, Eye } from "lucide-react";
 import useProductStore from "../store/useProductStore";
 
 const ProductCard = ({ product }) => {
-  // Use specific selectors for performance
-  const setSelectedProduct = useProductStore(
-    (state) => state.setSelectedProduct,
-  );
-  const addToCart = useProductStore((state) => state.addToCart);
+  const { addToCart, setSelectedProduct } = useProductStore();
 
   return (
-    <div className="group relative bg-[#0f0f0f] rounded-[2rem] overflow-hidden border border-zinc-900/50 hover:border-orange-600/30 transition-all duration-500">
-      <div className="relative aspect-[4/5] overflow-hidden bg-zinc-900">
+    <div className="group relative bg-[var(--bg-primary)] border border-zinc-100 dark:border-white/5 overflow-hidden transition-all duration-500 flex flex-col h-full hover:shadow-2xl">
+      {/* THE SMART CONTAINER */}
+      <div
+        className="product-image-container"
+        onClick={() => setSelectedProduct(product)}
+      >
         <img
-          src={product.thumbnail || product.image}
+          src={product.image}
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          className="product-image-render"
         />
 
-        {/* OVERLAY ACTIONS */}
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-4">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedProduct(product);
-            }}
-            className="p-4 bg-white text-black rounded-full hover:bg-orange-600 hover:text-white transition-all transform translate-y-4 group-hover:translate-y-0"
-          >
-            <Eye size={20} />
-          </button>
+        {/* OVERLAY ACTIONS (Desktop) */}
+        <div className="absolute inset-0 bg-black/5 dark:bg-white/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
+
+        <div className="absolute inset-0 flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 hidden lg:flex">
           <button
             onClick={(e) => {
               e.stopPropagation();
               addToCart(product);
             }}
-            className="p-4 bg-white text-black rounded-full hover:bg-orange-600 hover:text-white transition-all transform translate-y-4 group-hover:translate-y-0 delay-75"
+            className="p-4 bg-facility-cyan text-white rounded-full hover:scale-110 shadow-xl"
           >
-            <Plus size={20} />
+            <ShoppingCart size={20} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedProduct(product);
+            }}
+            className="p-4 bg-white text-black rounded-full hover:scale-110 shadow-xl"
+          >
+            <Eye size={20} />
           </button>
         </div>
       </div>
 
-      <div className="p-6 space-y-2">
-        <p className="text-[9px] font-black text-orange-600 uppercase tracking-widest">
-          {product.category}
-        </p>
-        <div className="flex justify-between items-center">
-          <h3 className="text-white font-black uppercase tracking-tighter truncate w-2/3">
+      {/* INFO AREA */}
+      <div className="p-5 flex flex-col flex-grow bg-[var(--bg-primary)]">
+        <div className="flex justify-between items-start mb-4 gap-2">
+          <h3 className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-tight leading-tight">
             {product.name}
           </h3>
-          <span className="text-white font-mono font-bold">
-            ${product.price}
+          <span className="text-[11px] font-mono text-facility-cyan font-bold whitespace-nowrap">
+            ₦{product.price?.toLocaleString()}
+          </span>
+        </div>
+
+        <div className="mt-auto flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-white/5">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-facility-cyan" />
+            <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest">
+              {product.category?.substring(0, 3)}
+            </span>
+          </div>
+          <span className="text-[8px] text-zinc-300 dark:text-zinc-600 font-mono">
+            {product._id?.substring(0, 8)}
           </span>
         </div>
       </div>

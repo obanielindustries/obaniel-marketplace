@@ -1,42 +1,59 @@
-/* 1. Import Google Font */
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap");
 
 @theme {
-  /* 2. Map the Google Font to the theme */
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* 1. Fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 
-  /* Brand Colors */
-  --color-obaniel-deep: #1a1614;
-  --color-obaniel-rust: #8b3a1a;
-  --color-obaniel-clay: #633220;
-  --color-obaniel-cream: #faf9f6;
-  --color-obaniel-sand: #f5f4f1;
+  /* 2. Brand Colors (Updated for Facility Aesthetic) */
+  --color-facility-black: #050505;
+  --color-facility-cyan: #0ea5e9;
+  --color-facility-orange: #ea580c;
+  --color-facility-zinc-900: #18181b;
+  --color-facility-zinc-950: #09090b;
 
-  /* Custom Animations */
+  /* 3. Animations */
   --animate-spin-slow: spin-slow 15s linear infinite;
+  --animate-scanline: scanline 3s linear infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
   @keyframes spin-slow {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(500%); }
   }
 }
 
-/* 3. Apply the font and base styles */
+/* 4. Base Styles with Dark Mode Support */
 @layer base {
+  :root {
+    --bg-primary: #ffffff;
+    --text-primary: #0a0a0a;
+    color-scheme: light;
+  }
+
+  /* Tailwind 4 detects the .dark class automatically if you use standard variants */
+  .dark {
+    --bg-primary: #050505;
+    --text-primary: #ffffff;
+    color-scheme: dark;
+  }
+
   body {
-    background-color: var(--color-obaniel-cream);
-    color: var(--color-obaniel-deep);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     font-family: var(--font-sans);
+    transition: background-color 0.3s ease, color 0.3s ease;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
 }
 
+/* 5. Components & Utilities */
 @layer components {
   .section-container {
     max-width: 1440px;
@@ -44,50 +61,74 @@
     padding-inline: 1.5rem;
   }
 
-  @media (width >= 768px) {
-    .section-container {
-      padding-inline: 3rem;
+  /* Facility-themed primary button */
+  .btn-facility {
+    @apply flex items-center justify-center gap-3 w-full bg-white text-black dark:bg-white dark:text-black 
+           py-4 px-8 rounded-full font-mono text-[10px] font-black uppercase tracking-[0.3em] 
+           transition-all duration-300 hover:bg-cyan-500 hover:text-white active:scale-95;
+    box-shadow: 0 0 0px rgba(14, 165, 233, 0);
+  }
+
+  .btn-facility:hover {
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.4);
+  }
+
+  /* Custom Scrollbar Utility */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-zinc-800 rounded-full hover:bg-cyan-500/50 transition-colors;
+  }
+
+  /* Hide Scrollbar Utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
     }
-  }
-
-  @media (width >= 1024px) {
-    .section-container {
-      padding-inline: 5rem;
-    }
-  }
-
-  .btn-obaniel {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    width: 100%;
-    background-color: var(--color-obaniel-deep);
-    color: white;
-    padding-block: 1rem;
-    border-radius: 1rem;
-    font-size: 0.6875rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    transition: all 0.5s;
-    cursor: pointer;
-  }
-
-  .btn-obaniel:hover {
-    background-color: var(--color-obaniel-rust);
-    box-shadow: 0 20px 40px rgba(139, 58, 26, 0.3);
-  }
-
-  .btn-obaniel:active {
-    scale: 0.98;
   }
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+/* 6. Functional Tech Effects */
+.glass-panel {
+  @apply backdrop-blur-md bg-white/5 border border-white/10;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #e5e7eb;
-  border-radius: 9999px;
+
+.text-stroke {
+  -webkit-text-stroke: 1px #3f3f46;
+}
+
+.dark .text-stroke {
+  -webkit-text-stroke: 1px #27272a;
+}
+
+@layer components {
+  /* THE SMART IMAGE CONTAINER */
+  .product-image-container {
+    @apply relative aspect-square overflow-hidden flex items-center justify-center transition-all duration-500;
+    /* Light Mode: Pure White */
+    background-color: #ffffff; 
+  }
+
+  .dark .product-image-container {
+    /* Dark Mode: Matches your facility-black exactly */
+    background-color: var(--color-facility-black);
+  }
+
+  .product-image-render {
+    @apply w-full h-full object-contain p-6 transition-transform duration-700 group-hover:scale-110;
+    /* This filter makes products look crisp on white and prevents "ghosting" on dark */
+    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.05));
+  }
+
+  .dark .product-image-render {
+    /* Slight brightness boost for dark mode so the product details don't vanish */
+    filter: brightness(1.1) contrast(1.05);
+  }
 }
