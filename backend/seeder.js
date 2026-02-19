@@ -19,7 +19,7 @@ const importData = async () => {
     // 3. Fetch products from DummyJSON API
     console.log("Fetching 100 products from DummyJSON API...");
     const { data } = await axios.get(
-      "https://dummyjson.com/products?limit=100",
+      "https://dummyjson.com/products?limit=194",
     );
     const externalProducts = data.products;
 

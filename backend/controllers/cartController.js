@@ -1,8 +1,12 @@
 import { Cart } from "../models/cartModel.js";
 
-// helper to send back populated cart
+// Ensure this helper is used in ALL cart controllers (add, remove, decrement)
 const getFullCart = async (userId) => {
-  return await Cart.findOne({ user: userId }).populate("items.product");
+  return await Cart.findOne({ user: userId })
+    .populate({
+      path: "items.product",
+      select: "name price image category description" // Explicitly select price
+    });
 };
 
 export const addToCart = async (req, res) => {
@@ -67,3 +71,41 @@ export const removeFromCart = async (req, res) => {
     res.status(500).json({ message: "Error removing item" });
   }
 };
+
+export const decrementCart = async (req, res) => {
+  try {
+    // We check BOTH params and body just to be safe
+    const productId = req.params.productId || req.body.productId;
+    const userId = req.user._id;
+
+    if (!productId) {
+      return res.status(400).json({ message: "Product ID is required for de-authorization." });
+    }
+
+    let cart = await Cart.findOne({ user: userId });
+
+    if (cart) {
+      const itemIndex = cart.items.findIndex(
+        (item) => item.product.toString() === productId,
+      );
+
+      if (itemIndex > -1) {
+        // ACTUAL LOGIC CHECK
+        if (cart.items[itemIndex].quantity > 1) {
+          cart.items[itemIndex].quantity -= 1;
+        } else {
+          // AUTO-PURGE: If quantity is 1, remove the entry from the array
+          cart.items.splice(itemIndex, 1);
+        }
+        await cart.save();
+      }
+    }
+
+    // Return the fresh state
+    const populatedCart = await getFullCart(userId);
+    res.status(200).json(populatedCart);
+  } catch (error) {
+    res.status(500).json({ message: "System_Error: Decrement_Failed", error: error.message });
+  }
+};
+
