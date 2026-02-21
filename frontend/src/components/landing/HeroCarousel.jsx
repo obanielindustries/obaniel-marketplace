@@ -3,16 +3,16 @@ import { Scan, ArrowUpRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useProductStore from "../../store/useProductStore";
 
-const HeroCarousel = ({ items = [] }) => {
+const HeroCarousel = ({ items = [], isLoading }) => {
   const [activeSlide, setActiveSlide] = useState(0);
   const navigate = useNavigate();
   const { setCategory, setQuery } = useProductStore();
 
   const carouselData = useMemo(() => {
     if (!items || items.length === 0) return [];
-    const uniqueCategories = [...new Set(items.map((item) => item.category))];
 
-    return uniqueCategories
+    const uniqueCategories = [...new Set(items.map((item) => item.category))];
+    const data = uniqueCategories
       .map((cat) => {
         const catItems = items.filter((item) => item.category === cat);
         return {
@@ -22,123 +22,129 @@ const HeroCarousel = ({ items = [] }) => {
         };
       })
       .filter((s) => s.displayImg);
+
+    // LOGIC FIX: Limit to 4 max on mobile to prevent "Bunch of lines" effect
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    return isMobile ? data.slice(0, 4) : data;
   }, [items]);
 
   useEffect(() => {
     if (carouselData.length <= 1) return;
 
     const interval = setInterval(() => {
-      setActiveSlide((prev) => {
-        const isMobile = window.innerWidth < 768;
-        const maxSlides = isMobile
-          ? Math.min(carouselData.length, 4)
-          : carouselData.length;
-        return (prev + 1) % maxSlides;
-      });
+      setActiveSlide((prev) => (prev + 1) % carouselData.length);
     }, 6000);
 
     return () => clearInterval(interval);
   }, [carouselData]);
 
   const handleExplore = (sector) => {
+    if (isLoading) return;
     setCategory(sector.category);
     setQuery("");
     navigate("/products");
   };
 
-  if (carouselData.length === 0) return null;
-  const current = carouselData[activeSlide];
+  // Fallback for loading state or empty data
+  const current = carouselData[activeSlide] || {
+    category: "LOADING...",
+    featured: { description: "Establishing uplink to marketplace servers..." },
+  };
 
   return (
     <section className="relative min-h-screen w-full bg-[var(--bg-primary)] flex flex-col md:flex-row overflow-hidden border-b border-zinc-200 dark:border-zinc-900 transition-colors duration-500">
-      {/* 1. SECTOR STREAM (The box on the right) */}
-      <div className="order-1 md:order-2 relative w-full md:flex-1 h-[45vh] md:h-screen bg-[var(--bg-primary)] flex items-center overflow-x-auto md:overflow-hidden px-6 md:px-12 scrollbar-hide border-b md:border-b-0 md:border-l border-zinc-200 dark:border-zinc-900 snap-x snap-mandatory">
-        <div className="flex gap-4 w-full h-full py-8 md:py-0 items-center min-w-max md:min-w-0">
-          {carouselData.map((sector, idx) => (
-            <div
-              key={sector.category}
-              onClick={() => setActiveSlide(idx)}
-              className={`relative cursor-pointer snap-center transition-all duration-1000 ease-in-out overflow-hidden border border-zinc-200 dark:border-zinc-800 h-[30vh] md:h-[60vh] ${
-                activeSlide === idx
-                  ? "w-[240px] md:flex-[3] opacity-100 grayscale-0 border-orange-600/50"
-                  : "w-[80px] md:flex-1 opacity-20 grayscale hover:opacity-40"
-              } ${idx > 3 ? "hidden md:block" : "block"}`}
-            >
-              <img
-                src={sector.displayImg}
-                className="w-full h-full object-cover"
-                alt={sector.category}
-              />
-              <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2">
+      {/* 1. SECTOR STREAM (The Visual Grid) */}
+      <div className="order-1 md:order-2 relative w-full md:flex-1 h-[40vh] md:h-screen bg-[var(--bg-primary)] flex items-center px-4 md:px-12 border-b md:border-b-0 md:border-l border-zinc-200 dark:border-zinc-900">
+        <div className="flex gap-2 md:gap-4 w-full h-full py-4 md:py-0 items-center justify-center">
+          {isLoading
+            ? [1, 2, 3, 4].map((i) => (
                 <div
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    activeSlide === idx
-                      ? "bg-orange-600 animate-pulse"
-                      : "bg-zinc-400"
-                  }`}
+                  key={i}
+                  className="flex-1 h-[25vh] md:h-[60vh] bg-zinc-200 dark:bg-zinc-900 animate-pulse border border-zinc-300 dark:border-zinc-800"
                 />
-                <span className="text-[8px] font-mono text-zinc-500 dark:text-white/60 uppercase tracking-widest truncate max-w-[100px]">
-                  {sector.category}
-                </span>
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 dark:from-black/60 via-transparent to-transparent pointer-events-none" />
-            </div>
-          ))}
+              ))
+            : carouselData.map((sector, idx) => (
+                <div
+                  key={sector.category}
+                  onClick={() => setActiveSlide(idx)}
+                  className={`relative cursor-pointer transition-all duration-700 ease-in-out overflow-hidden border ${
+                    activeSlide === idx
+                      ? "flex-[4] md:flex-[3] opacity-100 grayscale-0 border-orange-600 shadow-[0_0_20px_rgba(234,88,12,0.2)]"
+                      : "flex-1 opacity-30 grayscale hover:opacity-50 border-zinc-200 dark:border-zinc-800"
+                  } h-[25vh] md:h-[60vh]`}
+                >
+                  <img
+                    src={sector.displayImg}
+                    className="w-full h-full object-cover"
+                    alt={sector.category}
+                  />
+                  {/* Active Indicator for Mobile */}
+                  {activeSlide === idx && (
+                    <div className="absolute top-2 left-2 px-2 py-0.5 bg-orange-600 text-[8px] font-mono text-white uppercase">
+                      Active
+                    </div>
+                  )}
+                </div>
+              ))}
         </div>
       </div>
 
-      {/* 2. COMMAND ZONE (The area on the left) */}
-      <div className="order-2 md:order-1 relative z-20 w-full md:w-[35%] flex flex-col justify-center p-8 md:p-16 bg-[var(--bg-primary)] min-h-[55vh] md:min-h-screen">
-        <div className="w-full max-w-[1200px] mx-auto space-y-8">
+      {/* 2. COMMAND ZONE (Content Area) */}
+      <div className="order-2 md:order-1 relative z-20 w-full md:w-[38%] flex flex-col justify-center p-8 md:p-16 bg-[var(--bg-primary)] min-h-[50vh] md:min-h-screen">
+        <div className="w-full space-y-6 md:space-y-8">
           <div className="flex items-center gap-3 text-orange-600">
-            <Scan size={18} className="animate-pulse" />
-            <span className="text-[10px] tracking-[0.5em] font-mono uppercase font-bold">
-              Sector_Control // 0{activeSlide + 1}
+            <Scan
+              size={18}
+              className={isLoading ? "animate-spin" : "animate-pulse"}
+            />
+            <span className="text-[10px] tracking-[0.4em] font-mono uppercase font-bold">
+              {isLoading
+                ? "Uplink_Syncing"
+                : `Sector_Control // 0${activeSlide + 1}`}
             </span>
           </div>
 
-          <div className="space-y-2">
-            <h1 className="text-[13vw] md:text-[4.5vw] font-black leading-[0.8] uppercase tracking-tighter text-[var(--text-primary)]">
+          <div className="space-y-1">
+            <h1 className="text-[12vw] md:text-[4.5vw] font-black leading-[0.85] uppercase tracking-tighter text-[var(--text-primary)]">
               {current.category.replace("-", " ").split(" ")[0]}
               <br />
-              <span className="text-stroke text-transparent">
-                {current.category.replace("-", " ").split(" ")[1] || "ARCHIVE"}
+              <span
+                className="text-stroke text-transparent"
+                style={{ WebkitTextStroke: "1px var(--text-primary)" }}
+              >
+                {current.category.replace("-", " ").split(" ")[1] || "SYSTEM"}
               </span>
             </h1>
           </div>
 
-          <div className="flex flex-col md:flex-row md:items-center gap-8 md:gap-16">
-            <p className="text-zinc-500 text-[11px] md:text-xs md:max-w-[400px] leading-relaxed uppercase tracking-[0.2em] font-medium border-l-2 border-orange-600 pl-6">
-              {current.featured?.description?.substring(0, 120)}... [SECTOR_ID:{" "}
-              {current.featured?._id?.slice(-5)}]
+          <div className="flex flex-col gap-6 md:gap-10">
+            <p className="text-zinc-500 text-[10px] md:text-xs md:max-w-[350px] leading-relaxed uppercase tracking-[0.15em] font-medium border-l-2 border-orange-600 pl-4 md:pl-6">
+              {current.featured?.description?.substring(0, 110) ||
+                "Syncing sector data from the primary manifest..."}
+              ...
             </p>
 
             <button
               onClick={() => handleExplore(current)}
-              className="group flex items-center justify-between gap-10 bg-[var(--text-primary)] text-[var(--bg-primary)] pl-8 pr-2 py-2 rounded-full transition-all hover:bg-orange-600 hover:text-white active:scale-95 w-fit shadow-lg"
+              disabled={isLoading}
+              className="group flex items-center justify-between gap-6 bg-[var(--text-primary)] text-[var(--bg-primary)] pl-6 pr-2 py-2 rounded-full transition-all hover:bg-orange-600 hover:text-white active:scale-95 w-fit shadow-lg disabled:opacity-50"
             >
-              <span className="text-[10px] font-black uppercase tracking-widest">
+              <span className="text-[9px] font-black uppercase tracking-widest">
                 Authorize_Entry
               </span>
-              <div className="bg-[var(--bg-primary)] text-[var(--text-primary)] p-3 rounded-full group-hover:bg-white group-hover:text-orange-600 transition-all">
-                <ArrowUpRight size={20} />
+              <div className="bg-[var(--bg-primary)] text-[var(--text-primary)] p-2 rounded-full group-hover:bg-white group-hover:text-orange-600 transition-all">
+                <ArrowUpRight size={18} />
               </div>
             </button>
           </div>
         </div>
 
         {/* Dynamic Progress Bar */}
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-zinc-200 dark:bg-zinc-950">
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-zinc-200 dark:bg-zinc-900">
           <div
-            className="h-full bg-orange-600 transition-all duration-[6000ms] ease-linear shadow-[0_0_15px_#ea580c]"
+            className="h-full bg-orange-600 transition-all duration-[6000ms] ease-linear"
             style={{
-              width: `${
-                ((activeSlide + 1) /
-                  (window.innerWidth < 768
-                    ? Math.min(carouselData.length, 4)
-                    : carouselData.length)) *
-                100
-              }%`,
+              width: `${((activeSlide + 1) / carouselData.length) * 100}%`,
             }}
           />
         </div>
@@ -147,8 +153,7 @@ const HeroCarousel = ({ items = [] }) => {
       <style
         dangerouslySetInnerHTML={{
           __html: `
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .text-stroke { -webkit-text-stroke: 1px var(--text-primary); }
       `,
         }}
       />

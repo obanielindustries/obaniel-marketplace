@@ -7,13 +7,13 @@ const API = axios.create({
   withCredentials: true,
 });
 
-// FIXED: Robust data flattener to prevent $NaN
+// Forces numbers to prevent NaN in calculations
 const flattenCartData = (items) =>
   (items || []).map((item) => ({
     ...(item.product || {}),
     quantity: Number(item.quantity) || 0,
     _id: item.product?._id || item._id,
-    price: Number(item.product?.price) || 0, // Forces number to prevent NaN
+    price: Number(item.product?.price) || 0,
   }));
 
 const useProductStore = create((set, get) => ({
@@ -23,17 +23,13 @@ const useProductStore = create((set, get) => ({
   loading: false,
   query: "",
   currentCategory: "all",
-  // RESTORED: All missing UI states
   selectedProduct: null,
   isSidebarOpen: false,
 
-  // --- RESTORED UI ACTIONS ---
+  // --- UI ACTIONS ---
   toggleSidebar: () =>
     set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
   closeSidebar: () => set({ isSidebarOpen: false }),
-
-  // FIXED: Renamed to clearSelectedProduct/setSelectedProduct to match standard
-  // If your modal specifically calls "closeModal", keep this alias:
   closeModal: () => set({ selectedProduct: null }),
   setSelectedProduct: (product) => set({ selectedProduct: product }),
 
@@ -66,7 +62,7 @@ const useProductStore = create((set, get) => ({
     set({ filteredProducts: filtered });
   },
 
-  // --- PRODUCT FETCHING ---
+  // --- CRUD OPERATIONS (FULLY IMPLEMENTED) ---
   fetchProducts: async () => {
     set({ loading: true });
     try {
@@ -82,7 +78,61 @@ const useProductStore = create((set, get) => ({
     }
   },
 
-  // --- CART ACTIONS (SYNCED WITH YOUR BACKEND) ---
+  createProduct: async (productData) => {
+    set({ loading: true });
+    try {
+      const { data } = await API.post("/products", productData);
+      set((state) => {
+        const updated = [data, ...state.products];
+        return {
+          products: updated,
+          filteredProducts: updated,
+          loading: false,
+        };
+      });
+      return data;
+    } catch (error) {
+      set({ loading: false });
+      throw error;
+    }
+  },
+
+  updateProduct: async (id, productData) => {
+    set({ loading: true });
+    try {
+      const { data } = await API.put(`/products/${id}`, productData);
+      set((state) => {
+        const updated = state.products.map((p) => (p._id === id ? data : p));
+        return {
+          products: updated,
+          filteredProducts: updated,
+          loading: false,
+        };
+      });
+      return data;
+    } catch (error) {
+      set({ loading: false });
+      throw error;
+    }
+  },
+
+  deleteProduct: async (id) => {
+    try {
+      await API.delete(`/products/${id}`);
+      set((state) => {
+        const updated = state.products.filter((p) => p._id !== id);
+        return {
+          products: updated,
+          filteredProducts: updated,
+        };
+      });
+      systemAlert.success("UNIT_DE-MANIFESTED");
+    } catch (error) {
+      systemAlert.error("TERMINATION_FAILED");
+    }
+  },
+
+  // --- CART ACTIONS ---
   fetchCart: async () => {
     try {
       const { data } = await API.get("/cart");
@@ -93,7 +143,6 @@ const useProductStore = create((set, get) => ({
   },
 
   addToCart: async (product) => {
-    // Optimistic Update
     const { cart } = get();
     const existing = cart.find((i) => i._id === product._id);
     if (existing) {
@@ -110,7 +159,7 @@ const useProductStore = create((set, get) => ({
       const { data } = await API.post("/cart/add", { productId: product._id });
       set({ cart: flattenCartData(data.items) });
     } catch (error) {
-      get().fetchCart(); // Rollback
+      get().fetchCart();
     }
   },
 
@@ -118,10 +167,8 @@ const useProductStore = create((set, get) => ({
     const { cart } = get();
     const item = cart.find((i) => i._id === productId);
     if (!item) return;
-
     if (item.quantity <= 1) return get().removeFromCart(productId);
 
-    // Optimistic UI Update (Fixes the "Stuck at 3" bug)
     set({
       cart: cart.map((i) =>
         i._id === productId ? { ...i, quantity: i.quantity - 1 } : i,
@@ -141,13 +188,12 @@ const useProductStore = create((set, get) => ({
     try {
       const { data } = await API.delete(`/cart/${productId}`);
       set({ cart: flattenCartData(data.items) });
-      systemAlert.success("UNIT_DE-MANIFESTED");
+      systemAlert.success("UNIT_REMOVED");
     } catch (error) {
       get().fetchCart();
     }
   },
 
-  // Manual input sync
   updateQuantityLocal: (productId, newQuantity) => {
     set((state) => ({
       cart: state.cart.map((item) =>
